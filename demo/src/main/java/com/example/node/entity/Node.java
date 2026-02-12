@@ -1,8 +1,6 @@
 package com.example.node.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,12 +41,15 @@ public class Node {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    @JsonBackReference
     private Node parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<Node> children = new ArrayList<>();
+
+
+    public static boolean isRoot(Node node) {
+        return node.getParent() == null;
+    }
 
 }
 

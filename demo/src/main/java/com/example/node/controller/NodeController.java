@@ -1,6 +1,5 @@
 package com.example.node.controller;
 
-import com.example.node.entity.Node;
 import com.example.node.service.NodeService;
 import com.example.node.view.NodeResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,8 +33,7 @@ public class NodeController {
     @Operation(summary = "Add a child node")
     @PostMapping("/{parentId}/children")
     public ResponseEntity<NodeResponse> addChild(@PathVariable Long parentId, @RequestParam String name) {
-        Node result = service.addChild(parentId, name);
-        return ResponseEntity.ok().body(NodeResponse.from(result));
+        return ResponseEntity.ok().body(service.addChild(parentId, name));
     }
 
     @Operation(summary = "Soft delete a node")
@@ -49,8 +47,7 @@ public class NodeController {
     @Operation(summary = "Move a node to a new parent")
     @PutMapping("/{nodeId}/move/{newParentId}")
     public ResponseEntity<NodeResponse> moveNode(@PathVariable Long nodeId, @PathVariable Long newParentId) {
-        Node result = service.moveNode(nodeId, newParentId);
-        return ResponseEntity.ok().body(NodeResponse.from(result));
+        return ResponseEntity.ok(service.moveNode(nodeId, newParentId));
     }
 
     @Operation(summary = "Get downline of a node")
@@ -63,7 +60,6 @@ public class NodeController {
     @Operation(summary = "Get Nopde by Id")
     @GetMapping("/{id}")
     public ResponseEntity<NodeResponse> findById(@PathVariable long id) {
-        Node node = service.findById(id);
-        return ResponseEntity.ok(NodeResponse.from(node));
+        return ResponseEntity.ok(service.findById(id));
     }
 }

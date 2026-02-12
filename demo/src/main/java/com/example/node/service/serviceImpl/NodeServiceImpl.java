@@ -1,8 +1,10 @@
 package com.example.node.service.serviceImpl;
 
+import com.example.node.dto.NodeDto;
 import com.example.node.entity.Node;
 import com.example.node.repository.NodeRepository;
 import com.example.node.service.NodeService;
+import com.example.node.view.NodeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,32 +20,16 @@ public class NodeServiceImpl implements NodeService {
     private final NodeRepository nodeRepository;
 
     @Override
-    public Node findById(long id) {
+    public NodeResponse findById(long id) {
         Node node = nodeRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Node not found or inactive"));
         if (!node.isActive()) {
             throw new NoSuchElementException("Node not found or inactive");
         }
+        NodeDto nodeDto = NodeDto.from(node);
         // Recursively remove inactive children
-        node.setChildren(filterActiveChildren(node.getChildren()));
-        return node;
-    }
-
-    @Override
-    public List<Node> findNode(String name) {
-        return nodeRepository.findByNameAndIsActiveTrue(name);
-    }
-
-    @Override
-    public Node saveNode(Node node) {
-        node.setActive(true);
-        return nodeRepository.save(node);
-    }
-
-    @Override
-    public Node updateNode(Node node) {
-        if (node.getId() == null) throw new IllegalArgumentException("Node ID required");
-        return nodeRepository.save(node);
+        nodeDto.setChildren(filterActiveChildren(node.getChildren()));
+        return NodeResponse.from(nodeDto);
     }
 
     @Override
@@ -55,8 +41,9 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public Node addChild(long parentId, String childName) {
-        Node parent = findById(parentId);
+    public NodeResponse addChild(long parentId, String childName) {
+        Node parent = nodeRepository.findById(parentId)
+                .orElseThrow(() -> new NoSuchElementException("Node not found or inactive"));
         if (!parent.isActive()) {
             throw new IllegalStateException("Cannot add child to a deleted node");
         }
@@ -65,20 +52,28 @@ public class NodeServiceImpl implements NodeService {
                 .parent(parent)
                 .isActive(true)
                 .build();
-        return nodeRepository.save(child);
+        nodeRepository.save(child);
+
+        return NodeResponse.from(child);
+
     }
 
     @Override
-    public Node moveNode(long nodeId, long newParentId) {
-        Node node = findById(nodeId);
-        Node newParent = findById(newParentId);
+    public NodeResponse moveNode(long nodeId, long newParentId) {
+        Node node = nodeRepository.findById(nodeId)
+                .orElseThrow(() -> new NoSuchElementException("Node not found or inactive"));
+        Node newParent = nodeRepository.findById(newParentId)
+                .orElseThrow(() -> new NoSuchElementException("Node not found or inactive"));
         node.setParent(newParent);
-        return nodeRepository.save(node);
+        nodeRepository.save(node);
+
+        return NodeResponse.from(node);
     }
 
     @Override
     public List<String> getDownline(long parentId) {
-        Node parent = findById(parentId);
+        Node parent = nodeRepository.findById(parentId)
+                .orElseThrow(() -> new NoSuchElementException("Node not found or inactive"));
         return getAllChildrenRecursive(parent).stream()
                 .filter(Node::isActive)
                 .map(Node::getName)
@@ -96,10 +91,6 @@ public class NodeServiceImpl implements NodeService {
         return result;
     }
 
-    @Override
-    public boolean isRoot(Node node) {
-        return node.getParent() == null;
-    }
 
     //recursive call for cascading delete
     private void cascadeSoftDelete(Node node) {

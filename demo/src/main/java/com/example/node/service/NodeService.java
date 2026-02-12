@@ -1,28 +1,21 @@
 package com.example.node.service;
 
-import com.example.node.entity.Node;
+import com.example.node.view.NodeResponse;
 
 import java.util.List;
 
 public interface NodeService {
 
-    Node findById(long id);
-
-    List<Node> findNode(String name);
-
-    Node saveNode(Node node);
-
-    Node updateNode(Node node);
+    NodeResponse findById(long id);
 
     void deleteNode(long nodeId); // soft delete
 
-    Node addChild(long parentId, String childName);
+    NodeResponse addChild(long parentId, String childName);
 
-    Node moveNode(long nodeId, long newParentId);
+    NodeResponse moveNode(long nodeId, long newParentId);
 
     List<String> getDownline(long parentId);
 
-    boolean isRoot(Node node);
 }
 
 

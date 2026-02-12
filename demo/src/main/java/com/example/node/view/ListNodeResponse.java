@@ -13,6 +13,7 @@ public class ListNodeResponse {
     List<NodeResponse> list;
 
     public static ListNodeResponse create(List<Node> nodes) {
+        if (nodes == null || nodes.isEmpty()) return null;
         return ListNodeResponse.builder()
                 .list(nodes.stream()
                         .map(NodeResponse::from)
